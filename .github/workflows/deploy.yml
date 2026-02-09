@@ -1,31 +1,64 @@
-name: React CI/CD
+# name: React CI/CD
+# on:
+#   push:
+#     branches:
+#       - master # Trigger on push to main branch
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+
+#       - name: Install Node.js
+#         uses: actions/setup-node@v4 # Upgraded from v3
+#         with:
+#           node-version: 18
+
+#       - name: Install Dependencies
+#         run: npm install
+
+#       - name: Build Project
+#         run: npm run build
+
+#       - name: Deploy to Vercel
+#         uses: amondnet/vercel-action@v25
+#         with:
+#           vercel-token: ${{ secrets.VERCEL_TOKEN }}
+#           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+#           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+#           vercel-args: "--prod" # Deploy to production
+
+name: Docker CI/CD Practice
+
 on:
   push:
     branches:
-      - master # Trigger on push to main branch
+      - master
 
 jobs:
-  deploy:
+  build-and-push-docker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # This is the magic permission to store your image
+
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4 # Upgraded from v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          node-version: 18
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # Provided automatically by GitHub
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Project
-        run: npm run build
-
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
+      - name: Build and Push Image
+        uses: docker/build-push-action@v5
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: "--prod" # Deploy to production
+          context: .
+          push: true
+          # This tags the image with your username/repo-name
+          tags: ghcr.io/${{ github.repository }}/my-react-app:latest
