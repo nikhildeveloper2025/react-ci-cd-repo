@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-app-deployment
+spec:
+  replicas: 2 # This runs TWO copies of your app for "High Availability"
+  selector:
+    matchLabels:
+      app: react-web
+  template:
+    metadata:
+      labels:
+        app: react-web
+    spec:
+      containers:
+        - name: react-container
+          image: ghcr.io/nikhildeveloper2025/react-ci-cd-repo/my-react-app:latest
+          ports:
+            - containerPort: 80
+      # If your image is private, we will add 'imagePullSecrets' later
